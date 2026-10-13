@@ -17,8 +17,9 @@ const ORDER_FIELDS = `o.id, o.user_id, o.status, o.total,
 
 async function loadItems(db, orderId) {
   const { rows } = await db.query(
-    `SELECT product_id, product_name, unit_price, quantity, subtotal
-     FROM order_items WHERE order_id = $1 ORDER BY id`,
+    `SELECT oi.product_id, oi.product_name, oi.unit_price, oi.quantity, oi.subtotal, p.image_url
+     FROM order_items oi LEFT JOIN products p ON p.id = oi.product_id
+     WHERE oi.order_id = $1 ORDER BY oi.id`,
     [orderId]
   );
   return rows;

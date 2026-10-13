@@ -1,6 +1,6 @@
 # GamerZone Store
 
-Loja virtual de produtos gamer: catálogo com busca e filtros, carrinho, checkout com endereço de entrega, acompanhamento de pedidos e painel administrativo. Projeto acadêmico de Engenharia de Software.
+Loja virtual de produtos gamer: vitrine com banner de destaques, ofertas e mais vendidos, catálogo com busca e filtros (departamento, marca, preço, promoção), página de produto com ficha técnica, favoritos, carrinho, checkout com endereço de entrega, acompanhamento de pedidos e painel administrativo. Projeto acadêmico de Engenharia de Software.
 
 | Camada | Tecnologia |
 |---|---|
@@ -8,7 +8,7 @@ Loja virtual de produtos gamer: catálogo com busca e filtros, carrinho, checkou
 | Back-end | Node.js + Express 4, API REST em JSON (`backend/`) |
 | Banco de dados | PostgreSQL 14+ com migrações em SQL puro |
 | Autenticação | JWT (Bearer) + senhas com hash bcrypt |
-| Testes | Jest + Supertest contra um banco PostgreSQL real |
+| Testes | Jest + Supertest contra um banco PostgreSQL real (72 testes) |
 
 Documentação complementar:
 
@@ -43,17 +43,21 @@ gamerzone/
 │   │   │   ├── pool.js            # conexão e transações
 │   │   │   ├── migrate.js         # runner de migrações
 │   │   │   ├── seed.js            # dados de demonstração
-│   │   │   └── migrations/001_schema_inicial.sql
+│   │   │   └── migrations/
+│   │   │       ├── 001_schema_inicial.sql
+│   │   │       └── 002_vitrine.sql   # marca, promoção, destaque, ficha técnica
 │   │   └── utils/
-│   ├── tests/                     # 6 arquivos, 66 testes
+│   ├── tests/                     # 6 arquivos, 72 testes
 │   ├── .env.example
 │   └── package.json
 ├── frontend/
+│   ├── public/products/           # ilustrações SVG dos 24 produtos
+│   ├── scripts/gerar_ilustracoes.py
 │   ├── src/
 │   │   ├── api/client.js          # único ponto de contato com a API
 │   │   ├── api/services.js        # funções por recurso (produtos, carrinho...)
-│   │   ├── context/               # sessão (Auth), carrinho e notificações
-│   │   ├── components/            # Layout, cards, estados de tela, formulários
+│   │   ├── context/               # sessão (Auth), carrinho, favoritos e notificações
+│   │   ├── components/            # Layout, banner, vitrines, cards, estados de tela
 │   │   ├── pages/                 # uma tela por arquivo (+ admin/)
 │   │   ├── utils/format.js        # moeda, datas, status
 │   │   └── styles.css
@@ -125,7 +129,22 @@ npm run dev            # site em http://localhost:5173
 | Administrador | admin@gamerzone.com | admin123 |
 | Cliente (já tem um endereço) | cliente@gamerzone.com | cliente123 |
 
-O seed também cria 5 categorias e 14 produtos fictícios. Para voltar ao estado inicial: `npm run db:reset` (apaga **tudo** do banco de desenvolvimento).
+O seed também cria 5 categorias e 24 produtos fictícios, com marca, preço promocional, destaque e ficha técnica. Para voltar ao estado inicial: `npm run db:reset` (apaga **tudo** do banco de desenvolvimento).
+
+### Atualizando um banco da versão anterior
+
+Quem já tinha rodado a versão com 14 produtos não precisa apagar nada:
+
+```bash
+cd backend
+npm run db:setup   # aplica a migração 002 e completa os produtos com marca, imagem e ficha técnica
+```
+
+O seed só completa os produtos que ainda não têm ficha técnica; produtos editados pelo admin não são sobrescritos.
+
+### Imagens dos produtos
+
+As imagens são **ilustrações vetoriais (SVG) feitas para o projeto**, em `frontend/public/products/`. Elas não usam fotos de marcas reais (que têm direito autoral) e funcionam sem internet. Para regenerar ou criar novas, edite e rode `python3 frontend/scripts/gerar_ilustracoes.py`. No painel admin, qualquer produto pode receber uma URL de imagem `https://...` ou um arquivo local `/products/nome.svg`.
 
 ---
 
@@ -139,7 +158,7 @@ O seed também cria 5 categorias e 14 produtos fictícios. Para voltar ao estado
 | `npm run seed` | Insere os dados de demonstração (pode repetir, não duplica) |
 | `npm run db:setup` | `migrate` + `seed` |
 | `npm run db:reset` | Apaga todas as tabelas, recria e popula |
-| `npm test` | Roda os 66 testes no banco `gamerzone_test` |
+| `npm test` | Roda os 72 testes no banco `gamerzone_test` |
 
 ## Executando os testes
 
@@ -163,8 +182,10 @@ Os testes usam o banco definido em `TEST_DB_NAME` (padrão `gamerzone_test`), nu
 ## Limitações e fora do escopo
 
 - **Pagamento simulado:** o pedido é criado como "Aguardando pagamento" e não há integração com gateway nem coleta de dados de cartão.
-- **Frete:** grátis e não calculado.
-- **Imagens:** o admin pode informar uma URL de imagem; não há upload de arquivos. Sem URL, o front mostra uma ilustração por categoria.
+- **Frete:** grátis e não calculado. O parcelamento exibido (até 10x, parcela mínima de R$ 20) é ilustrativo.
+- **Imagens:** ilustrações próprias em SVG. O admin pode informar uma URL de imagem, mas não há upload de arquivos.
+- **Favoritos:** ficam salvos no navegador (`localStorage`), separados por usuário. Não sincronizam entre dispositivos.
+- **Mais vendidos:** calculado a partir dos pedidos não cancelados. Numa loja nova, sem vendas, a vitrine é completada pelos destaques.
 - **Conta do usuário:** não há recuperação de senha por e-mail, edição de perfil nem verificação de e-mail.
 - **Sessão:** o token JWT fica no `localStorage` (simples para o escopo). Ele não pode ser revogado individualmente antes de expirar (padrão: 1 dia), mas o papel e a existência do usuário são conferidos no banco a cada requisição.
 - **Rate limit** guardado em memória: reinicia junto com o servidor e não é compartilhado entre várias instâncias.

@@ -61,6 +61,9 @@ Regras: nome com 2 a 100 caracteres, e-mail válido, senha com 6 a 72 caracteres
 |---|---|---|---|
 | GET | `/products` | Público | Lista produtos ativos com filtros e paginação |
 | GET | `/products/:id` | Público | Detalhe de um produto ativo |
+| GET | `/products/:id/related` | Público | Produtos da mesma categoria (`?limit=`, até 12) |
+| GET | `/products/best-sellers` | Público | Mais vendidos, somando pedidos não cancelados (`?limit=`, até 24) |
+| GET | `/products/brands` | Público | Marcas com produtos ativos e a contagem de cada uma |
 | GET | `/products/admin/all` | Admin | Todos os produtos, inclusive desativados |
 | POST | `/products` | Admin | Cria produto |
 | PUT | `/products/:id` | Admin | Atualiza os campos enviados |
@@ -70,10 +73,13 @@ Regras: nome com 2 a 100 caracteres, e-mail válido, senha com 6 a 72 caracteres
 
 | Parâmetro | Exemplo | Regra |
 |---|---|---|
-| `search` | `mouse` | Procura no nome e na descrição, sem diferenciar maiúsculas |
+| `search` | `mouse` | Procura no nome, na descrição e na marca, sem diferenciar maiúsculas |
 | `category` | `perifericos` | Slug da categoria |
+| `brand` | `Vortex` | Marca exata |
+| `on_sale` | `true` | Só produtos em promoção (preço antigo maior que o atual) |
+| `featured` | `true` | Só os destaques da página inicial |
 | `min_price`, `max_price` | `100`, `500` | Números ≥ 0 |
-| `sort` | `price_asc` | `newest` (padrão), `price_asc`, `price_desc`, `name` |
+| `sort` | `price_asc` | `newest` (padrão), `price_asc`, `price_desc`, `name`, `discount` (maior desconto) |
 | `page`, `limit` | `1`, `12` | `limit` entre 1 e 50 |
 
 ```http
@@ -84,10 +90,12 @@ GET /api/products?search=mouse&sort=price_asc&limit=2
 {
   "products": [
     {
-      "id": 9, "name": "Mousepad Extended Grid XL", "slug": "mousepad-extended-grid-xl",
-      "description": "Superfície de tecido 90×40 cm com bordas costuradas.",
-      "price": "89.90", "stock": 60, "image_url": null, "active": true,
-      "category_id": 3, "category_name": "Acessórios", "category_slug": "acessorios"
+      "id": 16, "name": "Mouse Sem Fio Vortex Air", "slug": "mouse-sem-fio-vortex-air", "brand": "Vortex",
+      "description": "Sem fio de baixa latência a 2,4 GHz, sensor de 26.000 DPI...",
+      "price": "249.90", "compare_at_price": "299.90", "discount_percent": 17,
+      "stock": 18, "image_url": "/products/mouse-sem-fio-vortex-air.svg", "featured": false,
+      "specs": { "Sensor": "Óptico 26.000 DPI", "Conexão": "2,4 GHz e Bluetooth", "Peso": "58 g" },
+      "active": true, "category_id": 1, "category_name": "Periféricos", "category_slug": "perifericos"
     }
   ],
   "pagination": { "page": 1, "limit": 2, "total": 2, "totalPages": 1 }
@@ -98,11 +106,15 @@ GET /api/products?search=mouse&sort=price_asc&limit=2
 POST /api/products
 Authorization: Bearer <token_admin>
 
-{ "name": "Mousepad XL", "description": "Superfície lisa.", "price": 89.9, "stock": 50, "category_id": 3,
-  "image_url": "https://exemplo.com/mousepad.png" }
+{ "name": "Mousepad XL", "brand": "Grid", "description": "Superfície lisa.", "price": 89.9,
+  "compare_at_price": 119.9, "stock": 50, "category_id": 3, "featured": false,
+  "specs": { "Tamanho": "90 × 40 cm", "Base": "Borracha" },
+  "image_url": "/products/mousepad-extended-grid-xl.svg" }
 ```
 
-`image_url` só aceita `http://` ou `https://`. Em `PUT`, enviar `null` ou `""` limpa os campos opcionais, e `"active": true` reativa um produto desativado.
+Campos opcionais de vitrine: `brand` (até 80 caracteres), `compare_at_price` (preço antigo, exibido riscado; o `discount_percent` é calculado pelo banco), `featured` (aparece no banner da home) e `specs` (objeto com até 20 itens no formato `"Nome": "valor"`, mantidos na ordem enviada).
+
+`image_url` aceita `http://`, `https://` ou uma ilustração local no formato `/products/nome.svg`; qualquer outro valor (como `javascript:`) é recusado. Em `PUT`, enviar `null` ou `""` limpa os campos opcionais, e `"active": true` reativa um produto desativado.
 
 ---
 

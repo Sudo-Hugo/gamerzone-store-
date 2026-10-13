@@ -44,7 +44,7 @@ flowchart LR
 | Controllers (`controllers/`) | Regras de negócio e acesso ao banco | O checkout transacional |
 | Banco (`db/`) | Conexão, transações, migrações e seed | `withTransaction(fn)` |
 
-**Organização do front-end:** as telas (`pages/`) nunca chamam `fetch` diretamente. Elas usam `api/services.js`, que passa por `api/client.js`. Esse arquivo é o único lugar que conhece a URL da API, injeta o token e converte erros. Estado global (usuário logado, carrinho, notificações) fica em Contexts do React.
+**Organização do front-end:** a loja tem vitrine (`Home`), catálogo com filtros (`Shop`), produto, favoritos, carrinho, checkout, pedidos e painel admin. As telas (`pages/`) nunca chamam `fetch` diretamente. Elas usam `api/services.js`, que passa por `api/client.js`. Esse arquivo é o único lugar que conhece a URL da API, injeta o token e converte erros. Estado global (usuário logado, carrinho, notificações) fica em Contexts do React.
 
 ---
 
@@ -87,9 +87,13 @@ erDiagram
     serial id PK
     varchar name
     varchar slug UK
+    varchar brand
     numeric price "CHECK >= 0"
+    numeric compare_at_price "preço antigo"
     int stock "CHECK >= 0"
     int category_id FK "nullable"
+    boolean featured "banner da home"
+    json specs "ficha técnica"
     boolean active "soft delete"
   }
   CARTS {
@@ -177,7 +181,8 @@ sequenceDiagram
 | Recurso | Rotas | Quem acessa |
 |---|---|---|
 | Autenticação | `POST /auth/register`, `POST /auth/login`, `GET /auth/me` | Público / logado |
-| Produtos | `GET /products` (filtros), `GET /products/:id` | Público |
+| Produtos | `GET /products` (busca, departamento, marca, preço, ofertas, destaques, ordenação), `GET /products/:id` | Público |
+| Vitrine | `GET /products/best-sellers`, `GET /products/:id/related`, `GET /products/brands` | Público |
 | Produtos (gestão) | `POST`, `PUT`, `DELETE /products`, `GET /products/admin/all` | Admin |
 | Categorias | `GET /categories`; `POST`, `PUT`, `DELETE` | Público / admin |
 | Carrinho | `GET /cart`, `POST /cart/items`, `PATCH`/`DELETE /cart/items/:id`, `DELETE /cart` | Logado |
@@ -212,6 +217,12 @@ Detalhes e exemplos em [API.md](API.md).
 3. Totais e subtotais são calculados em SQL (`SUM(price * quantity)`) com `NUMERIC`, sem erro de arredondamento do JavaScript.
 4. O front mantém o carrinho num Context: o contador no cabeçalho atualiza em todas as telas.
 
+### Vitrine (página inicial)
+1. O banner mostra os produtos com `featured = true`, escolhidos pelo admin.
+2. "Ofertas da semana" usa `on_sale=true&sort=discount`: o banco calcula o percentual de desconto a partir do preço antigo.
+3. "Mais vendidos" soma, em SQL, as unidades de `order_items` dos pedidos que não foram cancelados. Ou seja, muda de verdade quando alguém compra.
+4. A página do produto traz a ficha técnica (campo `specs`) e produtos relacionados da mesma categoria.
+
 ### Pedido
 1. No checkout, o cliente escolhe ou cadastra um endereço.
 2. A API executa tudo numa transação, travando os produtos com `FOR UPDATE` (ver o diagrama da seção 3).
@@ -244,16 +255,16 @@ Detalhes e exemplos em [API.md](API.md).
 
 | # | Quem | O que mostrar | O que falar |
 |---|---|---|---|
-| 1 | Luiz | Rodar `npm test` no back-end | "66 testes automáticos cobrindo os 12 cenários pedidos, contra um PostgreSQL real, passando." |
-| 2 | Luis | Home: clicar nas categorias, buscar "mouse", filtrar de R$ 100 a R$ 300, ordenar por menor preço | "Os filtros ficam na URL e cada busca é uma requisição real à API." |
+| 1 | Luiz | Rodar `npm test` no back-end | "72 testes automáticos cobrindo os 12 cenários pedidos, contra um PostgreSQL real, passando." |
+| 2 | Luis | Home: banner de destaques, ofertas com % de desconto, departamentos. Depois buscar "mouse" no cabeçalho e, no catálogo, filtrar por marca, preço e "somente ofertas" | "Tudo vem da API; os filtros ficam na URL." |
 | 3 | Luis | Abrir um produto e clicar "Adicionar" sem estar logado | "Sem login, o site manda para a tela de entrada e volta para o produto depois." |
 | 4 | Luis | Criar uma conta nova. Antes, tentar com a senha `123` | Mostrar o erro apontado no campo pela API. |
 | 5 | Luis | Adicionar 2 produtos; no carrinho, alterar a quantidade e remover um | "O total é calculado no servidor; mesmo se eu alterar o preço no navegador, não muda nada." |
 | 6 | Luiz | Tentar adicionar mais unidades da Estátua do que o estoque (4) | Erro 409 "Estoque insuficiente". |
-| 7 | Luis | Checkout: cadastrar endereço e confirmar | Pedido criado, carrinho zerado, contador do cabeçalho zerado. |
+| 7 | Luis | Checkout: cadastrar endereço e confirmar. Voltar à home | Pedido criado, carrinho zerado, e o produto comprado sobe em "Mais vendidos". |
 | 8 | Hugo | No `psql`: `SELECT * FROM order_items;` e `SELECT stock FROM products WHERE id = ...;` | Mostrar a cópia do preço e a baixa de estoque. |
 | 9 | Hugo | `UPDATE products SET price = 1 WHERE id = ...;` e recarregar o pedido | "O pedido continua com o preço da compra: é o snapshot." |
-| 10 | Luiz | Entrar como admin: criar produto, desativar outro, avançar o status do pedido | Tentar `delivered` direto mostra o bloqueio da máquina de estados. |
+| 10 | Luiz | Entrar como admin: criar produto com marca, preço antigo, destaque e ficha técnica; desativar outro; avançar o status do pedido | Tentar `delivered` direto mostra o bloqueio da máquina de estados. |
 | 11 | Hugo | Na aba anônima, logado como `cliente@`, abrir `/pedidos/<id do pedido da outra conta>` | "Pedido não encontrado": um usuário não vê dados de outro. |
 | 12 | Hugo | Parar o back (Ctrl+C), subir de novo e recarregar o site | Carrinho e pedidos continuam: persistência. |
 
@@ -301,6 +312,15 @@ Cada mudança de estrutura é um arquivo `.sql` numerado. O script registra em `
 
 **Como os testes não estragam o banco de desenvolvimento?**
 Rodam num banco separado (`gamerzone_test`), recriado no início, e cada teste recarrega os dados de demonstração para começar sempre do mesmo estado.
+
+**De onde vêm as imagens dos produtos?**
+São ilustrações vetoriais (SVG) geradas por um script Python do próprio projeto (`frontend/scripts/gerar_ilustracoes.py`). Escolhemos isso porque fotos de produtos de marcas reais têm direito autoral, e porque a apresentação não pode depender de internet. O admin pode trocar por uma URL `https://`, e o servidor valida o endereço para bloquear `javascript:` (XSS).
+
+**Por que a ficha técnica é uma coluna JSON e não uma tabela?**
+Cada tipo de produto tem atributos diferentes (DPI para mouse, resolução para monitor), e nós só exibimos a ficha, sem filtrar por esses campos. Uma coluna `JSON` com `CHECK (json_typeof(specs) = 'object')` resolve sem criar tabelas para cada tipo. Usamos `JSON` e não `JSONB` porque o `JSONB` reordena as chaves, e a ficha sairia fora da ordem cadastrada. Se fosse preciso filtrar por atributo, o caminho seria uma tabela `product_attributes` ou `JSONB` com índice GIN.
+
+**Como vocês evoluíram o banco sem perder dados?**
+Com a migração `002_vitrine.sql`, que só adiciona colunas (`ALTER TABLE ... ADD COLUMN`). Quem já tinha o banco roda `npm run db:setup`: o runner aplica só a 002, e o seed completa os produtos antigos sem sobrescrever o que o admin editou.
 
 **O que faltaria para colocar em produção?**
 Gateway de pagamento real, HTTPS, cálculo de frete, upload de imagens em storage, recuperação de senha por e-mail, logs estruturados e monitoramento, rate limit compartilhado (Redis) e testes automatizados de interface (Playwright).

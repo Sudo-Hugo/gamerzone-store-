@@ -10,7 +10,7 @@ describe('4. Listagem e consulta de produtos', () => {
     const res = await api().get('/api/products').query({ limit: 5 });
     expect(res.status).toBe(200);
     expect(res.body.products).toHaveLength(5);
-    expect(res.body.pagination).toEqual({ page: 1, limit: 5, total: 14, totalPages: 3 });
+    expect(res.body.pagination).toEqual({ page: 1, limit: 5, total: 24, totalPages: 5 });
     expect(res.body.products[0]).toHaveProperty('category_name');
   });
 
@@ -48,7 +48,7 @@ describe('5. Busca e filtros', () => {
 
   test('filtro por categoria', async () => {
     const res = await api().get('/api/products').query({ category: 'hardware' });
-    expect(res.body.products.length).toBe(3);
+    expect(res.body.products.length).toBe(6);
     res.body.products.forEach((p) => expect(p.category_slug).toBe('hardware'));
   });
 
@@ -68,18 +68,105 @@ describe('5. Busca e filtros', () => {
   });
 
   test('caracteres curinga e tentativa de SQL injection são tratados como texto', async () => {
-    const curinga = await api().get('/api/products').query({ search: '%' });
-    expect(curinga.body.pagination.total).toBe(0);
+    // "%" é procurado como o caractere literal (ex.: "60%"), e não como "qualquer coisa"
+    const curinga = await api().get('/api/products').query({ search: '%', limit: 50 });
+    expect(curinga.body.pagination.total).toBeLessThan(24);
+    curinga.body.products.forEach((p) => expect(`${p.name} ${p.description}`).toContain('%'));
+    expect((await api().get('/api/products').query({ search: '_' })).body.pagination.total).toBe(0);
 
     const injection = await api().get('/api/products').query({ search: "' OR 1=1; DROP TABLE products; --" });
     expect(injection.status).toBe(200);
     expect(injection.body.products).toEqual([]);
-    expect((await api().get('/api/products')).body.pagination.total).toBe(14); // tabela intacta
+    expect((await api().get('/api/products')).body.pagination.total).toBe(24); // tabela intacta
   });
 
   test('parâmetros inválidos → 400', async () => {
     expect((await api().get('/api/products').query({ page: 'abc' })).status).toBe(400);
     expect((await api().get('/api/products').query({ limit: 999999 })).status).toBe(400);
     expect((await api().get('/api/products').query({ sort: 'id; DROP' })).status).toBe(400);
+  });
+});
+
+describe('5b. Vitrine: promoções, destaques, marcas, mais vendidos e relacionados', () => {
+  test('filtro de ofertas traz só produtos com preço antigo maior, com % calculado pelo banco', async () => {
+    const res = await api().get('/api/products').query({ on_sale: true, sort: 'discount', limit: 50 });
+    expect(res.status).toBe(200);
+    expect(res.body.products.length).toBeGreaterThan(0);
+    for (const p of res.body.products) {
+      expect(Number(p.compare_at_price)).toBeGreaterThan(Number(p.price));
+      const esperado = Math.round((1 - p.price / p.compare_at_price) * 100);
+      expect(p.discount_percent).toBe(esperado);
+    }
+    const descontos = res.body.products.map((p) => p.discount_percent);
+    expect(descontos).toEqual([...descontos].sort((a, b) => b - a));
+  });
+
+  test('destaques e filtro por marca', async () => {
+    const featured = await api().get('/api/products').query({ featured: true });
+    expect(featured.body.products.length).toBe(4);
+    featured.body.products.forEach((p) => expect(p.featured).toBe(true));
+
+    const nebula = await api().get('/api/products').query({ brand: 'Nebula' });
+    expect(nebula.body.products.map((p) => p.brand)).toEqual(['Nebula', 'Nebula']);
+
+    const brands = await api().get('/api/products/brands');
+    expect(brands.body.brands.map((b) => b.name)).toContain('Vortex');
+  });
+
+  test('ficha técnica vem na ordem em que foi cadastrada', async () => {
+    const teclado = await getProductBySlug('teclado-mecanico-rgb-nebula-k1');
+    const res = await api().get(`/api/products/${teclado.id}`);
+    expect(Object.keys(res.body.product.specs)[0]).toBe('Switch');
+    expect(res.body.product.image_url).toBe('/products/teclado-mecanico-rgb-nebula-k1.svg');
+  });
+
+  test('mais vendidos reflete os pedidos e ignora cancelados', async () => {
+    const { loginCustomer, createAddress } = require('./helpers');
+    const token = await loginCustomer();
+    const addr = await createAddress(token);
+    const webcam = await getProductBySlug('webcam-streamer-lumen-full-hd');
+    const mic = await getProductBySlug('microfone-condensador-echo-usb');
+
+    await api().post('/api/cart/items').set(auth(token)).send({ product_id: webcam.id, quantity: 3 });
+    await api().post('/api/orders').set(auth(token)).send({ address_id: addr.id });
+    await api().post('/api/cart/items').set(auth(token)).send({ product_id: mic.id, quantity: 5 });
+    const cancelado = (await api().post('/api/orders').set(auth(token)).send({ address_id: addr.id })).body.order;
+    await api().patch(`/api/orders/${cancelado.id}/cancel`).set(auth(token));
+
+    const res = await api().get('/api/products/best-sellers').query({ limit: 3 });
+    expect(res.body.products[0]).toMatchObject({ id: webcam.id, sold_count: 3 });
+    expect(res.body.products.find((p) => p.id === mic.id)).toBeUndefined();
+  });
+
+  test('relacionados são da mesma categoria e não incluem o próprio produto', async () => {
+    const mouse = await getProductBySlug('mouse-gamer-vortex-16000-dpi');
+    const res = await api().get(`/api/products/${mouse.id}/related`).query({ limit: 4 });
+    expect(res.body.products).toHaveLength(4);
+    res.body.products.forEach((p) => {
+      expect(p.category_slug).toBe('perifericos');
+      expect(p.id).not.toBe(mouse.id);
+    });
+  });
+
+  test('admin cadastra produto com marca, promoção e ficha técnica; dados inválidos são recusados', async () => {
+    const token = await loginAdmin();
+    const ok = await api().post('/api/products').set(auth(token)).send({
+      name: 'Mouse Teste', price: 100, compare_at_price: 125, stock: 3, brand: 'Teste', featured: true,
+      specs: { DPI: '8000', Peso: '80 g' }, image_url: '/products/mouse-gamer-vortex-16000-dpi.svg',
+    });
+    expect(ok.status).toBe(201);
+    expect(ok.body.product).toMatchObject({ discount_percent: 20, brand: 'Teste', featured: true, specs: { DPI: '8000', Peso: '80 g' } });
+
+    const ruins = [
+      { specs: ['lista'] },
+      { specs: { DPI: 8000 } },
+      { image_url: 'javascript:alert(1)' },
+      { image_url: '/../../etc/passwd' },
+      { compare_at_price: -1 },
+    ];
+    for (const extra of ruins) {
+      const res = await api().post('/api/products').set(auth(token)).send({ name: 'X Ruim', price: 1, stock: 1, ...extra });
+      expect(res.status).toBe(400);
+    }
   });
 });

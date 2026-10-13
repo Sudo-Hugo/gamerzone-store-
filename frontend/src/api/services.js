@@ -10,6 +10,9 @@ export const authApi = {
 export const productsApi = {
   list: (params) => api('/products', { params }),
   get: (id) => api(`/products/${id}`),
+  bestSellers: (limit = 8) => api('/products/best-sellers', { params: { limit } }),
+  related: (id, limit = 4) => api(`/products/${id}/related`, { params: { limit } }),
+  brands: () => api('/products/brands'),
   listAll: () => api('/products/admin/all'),
   create: (data) => api('/products', { method: 'POST', body: data }),
   update: (id, data) => api(`/products/${id}`, { method: 'PUT', body: data }),

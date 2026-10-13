@@ -3,9 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import Icon from './Icon';
 
 // Botão de adicionar ao carrinho, usado no card e na página do produto.
-export default function AddToCartButton({ product, quantity = 1, compact = false }) {
+export default function AddToCartButton({ product, quantity = 1, compact = false, block = false }) {
   const { user } = useAuth();
   const { add } = useCart();
   const notify = useToast();
@@ -34,10 +35,11 @@ export default function AddToCartButton({ product, quantity = 1, compact = false
 
   return (
     <button
-      className={`btn btn--primary ${compact ? 'btn--sm' : 'btn--lg'}`}
+      className={`btn btn--primary ${compact ? 'btn--sm' : 'btn--lg'} ${block ? 'btn--block' : ''}`}
       onClick={handleClick}
       disabled={soldOut || busy}
     >
+      {!soldOut && !busy && <Icon name="cart" size={18} />}
       {soldOut ? 'Esgotado' : busy ? 'Adicionando...' : compact ? 'Adicionar' : 'Adicionar ao carrinho'}
     </button>
   );

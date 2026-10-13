@@ -8,6 +8,9 @@ import Price from '../components/Price';
 import QuantityStepper from '../components/QuantityStepper';
 import { Empty, ErrorBox, Loading } from '../components/Status';
 import { formatPrice } from '../utils/format';
+import { productsApi } from '../api/services';
+import useFetch from '../utils/useFetch';
+import ProductRail from '../components/ProductRail';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -15,6 +18,7 @@ export default function Cart() {
   const notify = useToast();
   const navigate = useNavigate();
   const [busyId, setBusyId] = useState(null);
+  const suggestions = useFetch(() => productsApi.bestSellers(10), []);
 
   if (!user)
     return (
@@ -103,6 +107,15 @@ export default function Cart() {
           </button>
         </aside>
       </div>
+      {suggestions.data && (
+        <div className="section">
+          <ProductRail
+            title="Aproveite e leve também"
+            subtitle="Os mais vendidos da loja"
+            products={suggestions.data.products.filter((p) => !cart.items.some((i) => i.product_id === p.id))}
+          />
+        </div>
+      )}
     </section>
   );
 }

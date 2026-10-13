@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f1950"/><stop offset="1" stop-color="#120e2e"/></linearGradient>
+<radialGradient id="halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#a77bff" stop-opacity="0.55"/><stop offset="0.55" stop-color="#a77bff" stop-opacity="0.12"/><stop offset="1" stop-color="#a77bff" stop-opacity="0"/></radialGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.45" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#ffffff" stop-opacity="1"/></linearGradient>
+<mask id="floorMask"><rect width="800" height="600" fill="url(#fade)"/></mask>
+<filter id="blur8" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur18" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="18"/></filter>
+<filter id="blur3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1060"/><stop offset="0.7" stop-color="#6a2f8a"/><stop offset="1" stop-color="#e0688a"/></linearGradient>
+</defs>
+<rect width="800" height="600" fill="url(#bg)"/>
+<g stroke="#a77bff" stroke-opacity=".16" stroke-width="1.2" mask="url(#floorMask)"><line x1="400" y1="360" x2="-500" y2="640"/><line x1="400" y1="360" x2="-410" y2="640"/><line x1="400" y1="360" x2="-320" y2="640"/><line x1="400" y1="360" x2="-230" y2="640"/><line x1="400" y1="360" x2="-140" y2="640"/><line x1="400" y1="360" x2="-50" y2="640"/><line x1="400" y1="360" x2="40" y2="640"/><line x1="400" y1="360" x2="130" y2="640"/><line x1="400" y1="360" x2="220" y2="640"/><line x1="400" y1="360" x2="310" y2="640"/><line x1="400" y1="360" x2="400" y2="640"/><line x1="400" y1="360" x2="490" y2="640"/><line x1="400" y1="360" x2="580" y2="640"/><line x1="400" y1="360" x2="670" y2="640"/><line x1="400" y1="360" x2="760" y2="640"/><line x1="400" y1="360" x2="850" y2="640"/><line x1="400" y1="360" x2="940" y2="640"/><line x1="400" y1="360" x2="1030" y2="640"/><line x1="400" y1="360" x2="1120" y2="640"/><line x1="400" y1="360" x2="1210" y2="640"/><line x1="400" y1="360" x2="1300" y2="640"/><line x1="0" y1="369.0" x2="800" y2="369.0"/><line x1="0" y1="389.2" x2="800" y2="389.2"/><line x1="0" y1="418.3" x2="800" y2="418.3"/><line x1="0" y1="455.0" x2="800" y2="455.0"/><line x1="0" y1="498.8" x2="800" y2="498.8"/><line x1="0" y1="549.3" x2="800" y2="549.3"/></g>
+<ellipse cx="400" cy="300" rx="330" ry="250" fill="url(#halo)"/>
+<ellipse cx="400" cy="470" rx="250" ry="26" fill="#000" opacity=".45" filter="url(#blur18)"/>
+
+<g transform="rotate(-6 400 290)">
+  <rect x="273.0" y="128.0" width="270" height="360" rx="10" fill="#000" opacity=".5" filter="url(#blur8)"/>
+  <path d="M535.0,116.0 l18,-10 l0,360 l-18,10 z" fill="#0d0b22"/>
+  <path d="M269.0,116.0 l18,-10 l266,0 l-18,10 z" fill="#2a2552"/>
+  <rect x="259.0" y="104.0" width="282" height="372" rx="12" fill="#a77bff" opacity=".45" filter="url(#blur18)"/>
+  <clipPath id="cover"><rect x="265.0" y="110.0" width="270" height="360" rx="8"/></clipPath>
+  <g clip-path="url(#cover)"><rect x="265.0" y="110.0" width="270" height="360" fill="url(#sky)"/>
+<circle cx="455.0" cy="190.0" r="34" fill="#f3efff"/>
+<path d="M265.0,400.0 L305.0,400.0 L305.0,310.0 L320.0,295.0 L335.0,310.0 L335.0,350.0
+ L375.0,350.0 L375.0,260.0 L393.0,235.0 L411.0,260.0 L411.0,350.0 L455.0,350.0
+ L455.0,300.0 L470.0,285.0 L485.0,300.0 L485.0,400.0 L535.0,400.0 L535.0,470.0 L265.0,470.0 Z" fill="#0b0720"/>
+<path d="M325.0,220.0 c20,-30 50,-20 60,-5 c10,-12 30,-14 40,-4 c-14,2 -24,10 -28,22 c-10,-6 -30,-6 -38,6 c-6,-10 -20,-16 -34,-19 z" fill="#0b0720"/>
+<circle cx="393.0" cy="290.0" r="5" fill="#a77bff"/><text x="400" y="398.0" text-anchor="middle" font-family="Chakra Petch, Arial, sans-serif" font-weight="700" font-size="27" fill="#ffffff" stroke="#0b0720" stroke-width="5" paint-order="stroke">CRÔNICAS</text><text x="400" y="428.0" text-anchor="middle" font-family="Chakra Petch, Arial, sans-serif" font-weight="700" font-size="27" fill="#ffffff" stroke="#0b0720" stroke-width="5" paint-order="stroke">DE ARKHOS</text>
+    <rect x="265.0" y="110.0" width="270" height="26" fill="#0d0b22"/>
+    <text x="277.0" y="128.0" font-family="Chakra Petch, Arial, sans-serif" font-weight="700" font-size="14" fill="#a77bff">PC</text>
+    <path d="M265.0,110.0 L400.0,110.0 L319.0,470.0 L265.0,470.0 Z" fill="#fff" opacity=".06"/>
+  </g>
+  <rect x="265.0" y="110.0" width="270" height="360" rx="8" fill="none" stroke="#3a3570" stroke-width="2"/>
+</g>
+</svg>

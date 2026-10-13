@@ -8,8 +8,11 @@ const router = express.Router();
 
 // Públicas
 router.get('/', v.list, asyncHandler(c.listProducts));
+router.get('/best-sellers', v.limitOnly, asyncHandler(c.bestSellers));
+router.get('/brands', asyncHandler(c.listBrands));
 router.get('/admin/all', authMiddleware, adminOnly, asyncHandler(c.listAllProducts));
 router.get('/:id', v.getById, asyncHandler(c.getProduct));
+router.get('/:id/related', v.related, asyncHandler(c.relatedProducts));
 
 // Somente admin
 router.post('/', authMiddleware, adminOnly, v.create, asyncHandler(c.createProduct));

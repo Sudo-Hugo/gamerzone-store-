@@ -1,12 +1,14 @@
 # Relatório de testes
 
-Execução em 13/10/2026, 19:03:38 (horário de Brasília) com Node.js v22.22.0, PostgreSQL 16.15, Jest + Supertest.
+Execução em 13/10/2026, 19:38:42 (horário de Brasília) com Node.js v22.22.0, PostgreSQL 16.15, Jest + Supertest.
 
-**Resultado: 66 testes, 66 passaram, 0 falharam, 0 não executados.**
+**Resultado: 72 testes, 72 passaram, 0 falharam, 0 não executados.**
 
 Para reproduzir: `cd backend && npm test`
 
-## Resumo por cenário obrigatório
+## Resumo por cenário
+
+Os itens de 1 a 12 são os cenários obrigatórios; o 5b cobre as funcionalidades de vitrine (ofertas, destaques, marcas, mais vendidos, relacionados).
 
 | Cenário | Arquivo | Testes | Resultado |
 |---|---|---|---|
@@ -15,6 +17,7 @@ Para reproduzir: `cd backend && npm test`
 | 3. Login correto e incorreto | `tests/01-auth.test.js` | 3 | Passou |
 | 4. Listagem e consulta de produtos | `tests/02-products.test.js` | 4 | Passou |
 | 5. Busca e filtros | `tests/02-products.test.js` | 6 | Passou |
+| 5b. Vitrine: promoções, destaques, marcas, mais vendidos e relacionados | `tests/02-products.test.js` | 6 | Passou |
 | 6. Inclusão e remoção de itens do carrinho | `tests/03-cart.test.js` | 6 | Passou |
 | 7. Cálculo correto do total | `tests/03-cart.test.js` | 4 | Passou |
 | 8. Tentativa de comprar quantidade superior ao estoque | `tests/04-orders.test.js` | 4 | Passou |
@@ -59,6 +62,15 @@ Para reproduzir: `cd backend && npm test`
 - ✅ busca sem resultado retorna lista vazia
 - ✅ caracteres curinga e tentativa de SQL injection são tratados como texto
 - ✅ parâmetros inválidos → 400
+
+### 5b. Vitrine: promoções, destaques, marcas, mais vendidos e relacionados
+
+- ✅ filtro de ofertas traz só produtos com preço antigo maior, com % calculado pelo banco
+- ✅ destaques e filtro por marca
+- ✅ ficha técnica vem na ordem em que foi cadastrada
+- ✅ mais vendidos reflete os pedidos e ignora cancelados
+- ✅ relacionados são da mesma categoria e não incluem o próprio produto
+- ✅ admin cadastra produto com marca, promoção e ficha técnica; dados inválidos são recusados
 
 ### 6. Inclusão e remoção de itens do carrinho
 
@@ -140,5 +152,5 @@ Com o código correto, os dois voltaram a passar.
 
 ## O que não é coberto por testes automatizados
 
-- **Front-end:** não há testes automatizados de interface. O fluxo completo (catálogo, busca, login, carrinho, checkout, pedido, painel admin, layout mobile) foi verificado durante o desenvolvimento com um roteiro em navegador headless (Playwright) contra a API real, sem erros no console. Esse roteiro não faz parte do repositório.
+- **Front-end:** não há testes automatizados de interface. O fluxo completo (vitrine, busca no cabeçalho, filtros, favoritos, login, carrinho, checkout, pedido, painel admin com marca, promoção, destaque e ficha técnica, layout mobile) foi verificado durante o desenvolvimento com um roteiro em navegador headless (Playwright) contra a API real, sem erros no console. Esse roteiro não faz parte do repositório.
 - **Rate limit de login:** desativado na suíte (limite alto) para não interferir nos outros testes.

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f1950"/><stop offset="1" stop-color="#120e2e"/></linearGradient>
+<radialGradient id="halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#3ddc97" stop-opacity="0.55"/><stop offset="0.55" stop-color="#3ddc97" stop-opacity="0.12"/><stop offset="1" stop-color="#3ddc97" stop-opacity="0"/></radialGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.45" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#ffffff" stop-opacity="1"/></linearGradient>
+<mask id="floorMask"><rect width="800" height="600" fill="url(#fade)"/></mask>
+<filter id="blur8" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur18" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="18"/></filter>
+<filter id="blur3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+<linearGradient id="pcb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a4f3a"/><stop offset="1" stop-color="#0b2a1e"/></linearGradient><linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c9952b"/></linearGradient><linearGradient id="sink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4677"/><stop offset="1" stop-color="#1a1638"/></linearGradient><linearGradient id="fin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f5a92"/><stop offset="1" stop-color="#2a2552"/></linearGradient>
+</defs>
+<rect width="800" height="600" fill="url(#bg)"/>
+<g stroke="#3ddc97" stroke-opacity=".16" stroke-width="1.2" mask="url(#floorMask)"><line x1="400" y1="360" x2="-500" y2="640"/><line x1="400" y1="360" x2="-410" y2="640"/><line x1="400" y1="360" x2="-320" y2="640"/><line x1="400" y1="360" x2="-230" y2="640"/><line x1="400" y1="360" x2="-140" y2="640"/><line x1="400" y1="360" x2="-50" y2="640"/><line x1="400" y1="360" x2="40" y2="640"/><line x1="400" y1="360" x2="130" y2="640"/><line x1="400" y1="360" x2="220" y2="640"/><line x1="400" y1="360" x2="310" y2="640"/><line x1="400" y1="360" x2="400" y2="640"/><line x1="400" y1="360" x2="490" y2="640"/><line x1="400" y1="360" x2="580" y2="640"/><line x1="400" y1="360" x2="670" y2="640"/><line x1="400" y1="360" x2="760" y2="640"/><line x1="400" y1="360" x2="850" y2="640"/><line x1="400" y1="360" x2="940" y2="640"/><line x1="400" y1="360" x2="1030" y2="640"/><line x1="400" y1="360" x2="1120" y2="640"/><line x1="400" y1="360" x2="1210" y2="640"/><line x1="400" y1="360" x2="1300" y2="640"/><line x1="0" y1="369.0" x2="800" y2="369.0"/><line x1="0" y1="389.2" x2="800" y2="389.2"/><line x1="0" y1="418.3" x2="800" y2="418.3"/><line x1="0" y1="455.0" x2="800" y2="455.0"/><line x1="0" y1="498.8" x2="800" y2="498.8"/><line x1="0" y1="549.3" x2="800" y2="549.3"/></g>
+<ellipse cx="400" cy="300" rx="330" ry="250" fill="url(#halo)"/>
+<ellipse cx="400" cy="470" rx="250" ry="26" fill="#000" opacity=".45" filter="url(#blur18)"/>
+
+<g transform="translate(400 300) rotate(-12)">
+  <rect x="-270" y="-62" width="540" height="124" rx="10" fill="#000" opacity=".5" transform="translate(10 22)" filter="url(#blur8)"/>
+  <rect x="-270" y="-62" width="540" height="124" rx="10" fill="url(#pcb)"/>
+  <rect x="-262.0" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-255.8" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-249.6" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-243.4" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-237.2" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-231.0" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-224.8" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-206.2" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/><rect x="-200.0" y="-32" width="3.6" height="64" rx="1" fill="url(#gold)"/>
+  <circle cx="262" cy="0" r="14" fill="#0b2a1e"/><circle cx="262" cy="0" r="8" fill="url(#gold)"/>
+  <rect x="-205" y="-46" width="70" height="92" rx="4" fill="#0e0d1c"/>
+  <rect x="-140" y="-66" width="380" height="132" rx="12" fill="#3ddc97" opacity=".35" filter="url(#blur18)"/>
+  <rect x="-140" y="-66" width="380" height="132" rx="12" fill="url(#sink)"/>
+  <rect x="-130" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="-104" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="-78" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="-52" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="-26" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="0" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="26" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="52" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="78" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="104" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="130" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="156" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/><rect x="182" y="-58" width="12" height="116" rx="4" fill="url(#fin)"/>
+  <rect x="-140" y="-66" width="380" height="132" rx="12" fill="none" stroke="#3ddc97" stroke-width="3"/>
+  <rect x="-20" y="-20" width="160" height="40" rx="6" fill="#0d0b22"/>
+  <text x="60" y="7" text-anchor="middle" font-family="Chakra Petch, Arial, sans-serif" font-weight="700" font-size="20" fill="#3ddc97">LIGHTSPEED</text>
+</g>
+</svg>

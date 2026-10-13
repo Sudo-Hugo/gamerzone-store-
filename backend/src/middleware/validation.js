@@ -19,13 +19,35 @@ const ORDER_STATUS = ['pending', 'processing', 'shipped', 'delivered', 'cancelle
 const idParam = (name = 'id') =>
   param(name).isInt({ min: 1 }).withMessage('ID inválido.').toInt();
 
-// URL de imagem: só http/https (bloqueia "javascript:" e similares)
+// URL de imagem: http/https ou uma ilustração local (/products/nome.svg).
+// Qualquer outro esquema ("javascript:", "data:"...) é recusado.
+const LOCAL_IMAGE = /^\/products\/[a-z0-9-]+\.(svg|png|jpe?g|webp)$/;
 const imageUrl = () =>
   body('image_url')
     .optional({ values: 'null' })
     .trim()
-    .isURL({ protocols: ['http', 'https'], require_protocol: true })
+    .custom((v) => v === '' || LOCAL_IMAGE.test(v) ||
+      /^https?:\/\/[^\s"'<>]+$/i.test(v))
     .withMessage('URL da imagem deve começar com http:// ou https://.');
+
+// Campos de vitrine (marca, promoção, destaque, ficha técnica)
+const showcaseFields = () => [
+  body('brand').optional({ values: 'null' }).isString().trim().isLength({ max: 80 }).withMessage('Marca muito longa.'),
+  body('compare_at_price').optional({ values: 'null' }).isFloat({ min: 0, max: 999999 })
+    .withMessage('Preço antigo inválido.').toFloat(),
+  body('featured').optional().isBoolean().withMessage('Campo "featured" deve ser true ou false.').toBoolean(),
+  body('specs').optional().custom((specs) => {
+    if (typeof specs !== 'object' || specs === null || Array.isArray(specs)) throw new Error('Especificações devem ser um objeto.');
+    const entries = Object.entries(specs);
+    if (entries.length > 20) throw new Error('No máximo 20 especificações.');
+    for (const [k, v] of entries) {
+      if (!k.trim() || k.length > 40 || typeof v !== 'string' || v.length > 100) {
+        throw new Error('Cada especificação precisa de nome (até 40) e valor em texto (até 100).');
+      }
+    }
+    return true;
+  }),
+];
 
 const email = () =>
   body('email').trim().isEmail().withMessage('E-mail inválido.')
@@ -54,11 +76,23 @@ const productValidation = {
     query('max_price').optional().isFloat({ min: 0 }).withMessage('Preço máximo inválido.').toFloat(),
     query('category').optional().matches(/^[a-z0-9-]{1,80}$/).withMessage('Categoria inválida.'),
     query('search').optional().isString().trim().isLength({ max: 100 }).withMessage('Busca muito longa.'),
-    query('sort').optional().isIn(['newest', 'price_asc', 'price_desc', 'name'])
+    query('sort').optional().isIn(['newest', 'price_asc', 'price_desc', 'name', 'discount'])
       .withMessage('Ordenação inválida.'),
+    query('brand').optional().isString().trim().isLength({ max: 80 }).withMessage('Marca inválida.'),
+    query('on_sale').optional().isBoolean().withMessage('on_sale deve ser true ou false.').toBoolean(),
+    query('featured').optional().isBoolean().withMessage('featured deve ser true ou false.').toBoolean(),
     handleValidation,
   ],
   getById: [idParam(), handleValidation],
+  limitOnly: [
+    query('limit').optional().isInt({ min: 1, max: 24 }).withMessage('Limite deve ser entre 1 e 24.').toInt(),
+    handleValidation,
+  ],
+  related: [
+    idParam(),
+    query('limit').optional().isInt({ min: 1, max: 12 }).withMessage('Limite deve ser entre 1 e 12.').toInt(),
+    handleValidation,
+  ],
   create: [
     body('name').trim().isLength({ min: 2, max: 200 }).withMessage('Nome deve ter entre 2 e 200 caracteres.'),
     body('description').optional({ values: 'null' }).isString().trim().isLength({ max: 2000 }),
@@ -66,6 +100,7 @@ const productValidation = {
     body('stock').isInt({ min: 0, max: 100000 }).withMessage('Estoque inválido.').toInt(),
     body('category_id').optional({ values: 'null' }).isInt({ min: 1 }).withMessage('Categoria inválida.').toInt(),
     imageUrl(),
+    ...showcaseFields(),
     handleValidation,
   ],
   update: [
@@ -77,6 +112,7 @@ const productValidation = {
     body('category_id').optional({ values: 'null' }).isInt({ min: 1 }).withMessage('Categoria inválida.').toInt(),
     body('active').optional().isBoolean().withMessage('Campo "active" deve ser true ou false.').toBoolean(),
     imageUrl(),
+    ...showcaseFields(),
     handleValidation,
   ],
   remove: [idParam(), handleValidation],

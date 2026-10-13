@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { ordersApi } from '../api/services';
 import { useToast } from '../context/ToastContext';
 import Price from '../components/Price';
+import ProductImage from '../components/ProductImage';
 import StatusBadge from '../components/StatusBadge';
 import { ErrorBox, Loading } from '../components/Status';
 import { formatDate, formatPrice, formatZip } from '../utils/format';
@@ -75,7 +76,12 @@ export default function OrderDetail() {
           <tbody>
             {order.items.map((it, i) => (
               <tr key={i}>
-                <td>{it.product_id ? <Link to={`/produto/${it.product_id}`}>{it.product_name}</Link> : it.product_name}</td>
+                <td>
+                  <span className="itemcell">
+                    <ProductImage product={{ name: it.product_name, image_url: it.image_url }} size="xs" />
+                    {it.product_id ? <Link to={`/produto/${it.product_id}`}>{it.product_name}</Link> : it.product_name}
+                  </span>
+                </td>
                 <td className="num">{formatPrice(it.unit_price)}</td>
                 <td className="num">{it.quantity}</td>
                 <td className="num">{formatPrice(it.subtotal)}</td>

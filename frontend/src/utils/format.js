@@ -32,3 +32,12 @@ export const STATUS_ACTION = {
   delivered: 'Marcar como entregue',
   cancelled: 'Cancelar',
 };
+
+// Parcelamento ilustrativo: até 10x sem juros, parcela mínima de R$ 20
+export function installments(price) {
+  const value = Number(price);
+  const n = Math.min(10, Math.floor(value / 20));
+  return n >= 2 ? { n, each: value / n } : null;
+}
+
+export const isOnSale = (p) => p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
