@@ -44,7 +44,7 @@ flowchart LR
 | Controllers (`controllers/`) | Regras de negócio e acesso ao banco | O checkout transacional |
 | Banco (`db/`) | Conexão, transações, migrações e seed | `withTransaction(fn)` |
 
-**Organização do front-end:** a loja tem vitrine (`Home`), catálogo com filtros (`Shop`), produto, favoritos, carrinho, checkout, pedidos e painel admin. As telas (`pages/`) nunca chamam `fetch` diretamente. Elas usam `api/services.js`, que passa por `api/client.js`. Esse arquivo é o único lugar que conhece a URL da API, injeta o token e converte erros. Estado global (usuário logado, carrinho, notificações) fica em Contexts do React.
+**Organização do front-end:** a loja tem vitrine (`Home`), catálogo com filtros (`Shop`), produto, favoritos, carrinho, checkout, pedidos e painel admin. As telas (`pages/`) nunca chamam `fetch` diretamente. Elas usam `api/services.js`, que passa por `api/client.js`. Esse arquivo é o único lugar que conhece a URL da API, injeta o token e converte erros. Estado global (usuário logado, carrinho, favoritos, notificações e o diálogo de confirmação) fica em Contexts do React. A interface usa animações curtas (150 a 300 ms) para dar retorno às ações, como o botão "Adicionado", o contador do carrinho, as etapas da compra e a linha do tempo do pedido. Todas são desligadas automaticamente quando o sistema pede movimento reduzido.
 
 ---
 

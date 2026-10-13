@@ -9,7 +9,7 @@ import AddToCartButton from '../components/AddToCartButton';
 import FavoriteButton from '../components/FavoriteButton';
 import ProductRail from '../components/ProductRail';
 import Icon from '../components/Icon';
-import { ErrorBox, Loading } from '../components/Status';
+import { ErrorBox } from '../components/Status';
 import { formatPrice, isOnSale } from '../utils/format';
 
 export default function ProductDetail() {
@@ -24,8 +24,22 @@ export default function ProductDetail() {
     setTab('desc');
     window.scrollTo({ top: 0 });
   }, [id]);
+  // (o Layout já volta ao topo; aqui cobre a troca entre produtos relacionados)
 
-  if (loading) return <Loading label="Carregando produto..." />;
+  if (loading)
+    return (
+      <div className="wrap">
+        <div className="detail" aria-hidden="true">
+          <div className="sk sk--media sk--round" />
+          <div className="stack">
+            <div className="sk sk--line sk--short" />
+            <div className="sk sk--title" />
+            <div className="sk sk--box" />
+          </div>
+        </div>
+        <p className="sr-only" role="status">Carregando produto...</p>
+      </div>
+    );
   if (error)
     return (
       <div className="wrap">
@@ -113,11 +127,11 @@ export default function ProductDetail() {
           </button>
         </div>
         {tab === 'desc' ? (
-          <div role="tabpanel" className="info__panel">
+          <div role="tabpanel" className="info__panel" key="desc">
             <p>{product.description || 'Sem descrição.'}</p>
           </div>
         ) : (
-          <div role="tabpanel" className="info__panel">
+          <div role="tabpanel" className="info__panel" key="specs">
             {specs.length ? (
               <table className="specs">
                 <tbody>

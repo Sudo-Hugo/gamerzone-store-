@@ -7,6 +7,7 @@ import AddressForm from '../components/AddressForm';
 import Price from '../components/Price';
 import { Empty, ErrorBox, Loading } from '../components/Status';
 import { formatZip } from '../utils/format';
+import Steps from '../components/Steps';
 
 export default function Checkout() {
   const { cart, refresh } = useCart();
@@ -50,7 +51,7 @@ export default function Checkout() {
   if (!addresses) return <Loading label="Carregando endereços..." />;
   if (cart.items.length === 0)
     return (
-      <Empty title="Não há itens para finalizar.">
+      <Empty title="Não há itens para finalizar." art="cart">
         <Link className="btn btn--primary" to="/">
           Ver produtos
         </Link>
@@ -59,6 +60,7 @@ export default function Checkout() {
 
   return (
     <section>
+      <Steps current={2} />
       <h1>Entrega e confirmação</h1>
       <div className="cart">
         <div className="stack">
@@ -82,6 +84,7 @@ export default function Checkout() {
             </fieldset>
           )}
           {showForm ? (
+            <div className="reveal">
             <AddressForm
               onCreated={(a) => {
                 setAddresses([a, ...addresses]);
@@ -91,6 +94,7 @@ export default function Checkout() {
               }}
               onCancel={addresses.length ? () => setShowForm(false) : undefined}
             />
+            </div>
           ) : (
             <button className="btn btn--ghost" onClick={() => setShowForm(true)}>
               Adicionar outro endereço

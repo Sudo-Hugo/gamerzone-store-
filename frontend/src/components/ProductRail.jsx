@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import Icon from './Icon';
-import { ErrorBox, Loading } from './Status';
+import { ErrorBox, SkeletonGrid } from './Status';
 
 // Vitrine horizontal com rolagem por setas (e arraste no celular).
 export default function ProductRail({ title, subtitle, products, loading, error, onRetry, moreLink }) {
@@ -30,7 +30,7 @@ export default function ProductRail({ title, subtitle, products, loading, error,
           </button>
         </div>
       </header>
-      {loading && <Loading />}
+      {loading && <SkeletonGrid count={4} rail />}
       {error && <ErrorBox message={error.message} onRetry={onRetry} />}
       {products && (
         <div className="rail__track" ref={ref}>

@@ -52,11 +52,12 @@ gamerzone/
 │   └── package.json
 ├── frontend/
 │   ├── public/products/           # ilustrações SVG dos 24 produtos
+│   ├── public/categories/         # ilustrações dos 5 departamentos
 │   ├── scripts/gerar_ilustracoes.py
 │   ├── src/
 │   │   ├── api/client.js          # único ponto de contato com a API
 │   │   ├── api/services.js        # funções por recurso (produtos, carrinho...)
-│   │   ├── context/               # sessão (Auth), carrinho, favoritos e notificações
+│   │   ├── context/               # sessão, carrinho, favoritos, notificações e diálogo de confirmação
 │   │   ├── components/            # Layout, banner, vitrines, cards, estados de tela
 │   │   ├── pages/                 # uma tela por arquivo (+ admin/)
 │   │   ├── utils/format.js        # moeda, datas, status
@@ -144,7 +145,7 @@ O seed só completa os produtos que ainda não têm ficha técnica; produtos edi
 
 ### Imagens dos produtos
 
-As imagens são **ilustrações vetoriais (SVG) feitas para o projeto**, em `frontend/public/products/`. Elas não usam fotos de marcas reais (que têm direito autoral) e funcionam sem internet. Para regenerar ou criar novas, edite e rode `python3 frontend/scripts/gerar_ilustracoes.py`. No painel admin, qualquer produto pode receber uma URL de imagem `https://...` ou um arquivo local `/products/nome.svg`.
+As imagens são **ilustrações vetoriais (SVG) feitas para o projeto**: uma por produto em `frontend/public/products/` e uma por departamento em `frontend/public/categories/`. Elas não usam fotos de marcas reais (que têm direito autoral) e funcionam sem internet. Para regenerar ou criar novas, edite e rode `python3 frontend/scripts/gerar_ilustracoes.py`. No painel admin, qualquer produto pode receber uma URL de imagem `https://...` ou um arquivo local `/products/nome.svg`.
 
 ---
 

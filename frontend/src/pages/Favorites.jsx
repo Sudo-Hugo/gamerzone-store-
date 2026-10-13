@@ -3,7 +3,7 @@ import { productsApi } from '../api/services';
 import { useFavorites } from '../context/FavoritesContext';
 import useFetch from '../utils/useFetch';
 import ProductCard from '../components/ProductCard';
-import { Empty, ErrorBox, Loading } from '../components/Status';
+import { Empty, ErrorBox, SkeletonGrid } from '../components/Status';
 
 export default function Favorites() {
   const { ids } = useFavorites();
@@ -16,7 +16,7 @@ export default function Favorites() {
   if (!ids.length)
     return (
       <div className="wrap">
-        <Empty title="Você ainda não favoritou nenhum produto.">
+        <Empty title="Você ainda não favoritou nenhum produto." art="heart">
           <p className="muted">Toque no coração de um produto para guardar aqui.</p>
           <Link className="btn btn--primary" to="/loja">
             Explorar a loja
@@ -30,7 +30,7 @@ export default function Favorites() {
     <section className="wrap">
       <h1>Favoritos</h1>
       <p className="muted">Sua lista fica salva neste navegador.</p>
-      {favs.loading && <Loading />}
+      {favs.loading && <SkeletonGrid count={Math.min(ids.length, 8)} />}
       {favs.error && <ErrorBox message={favs.error.message} onRetry={favs.retry} />}
       {favs.data && (
         <div className="grid">

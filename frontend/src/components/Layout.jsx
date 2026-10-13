@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -33,6 +33,28 @@ export default function Layout() {
     navigate('/');
   };
 
+  // Cabeçalho compacto depois de rolar um pouco a página
+  const [condensed, setCondensed] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setCondensed(window.scrollY > 120);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // "Pulo" no contador do carrinho quando a quantidade aumenta
+  const [bump, setBump] = useState(false);
+  const prevCount = useRef(cart.item_count);
+  useEffect(() => {
+    if (cart.item_count > prevCount.current) setBump(true);
+    prevCount.current = cart.item_count;
+  }, [cart.item_count]);
+
+  // Volta ao topo ao trocar de página (mas não ao mudar só os filtros)
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [location.pathname]);
+
   const current = location.pathname === '/loja' ? params.get('category') : null;
   const onSale = location.pathname === '/loja' && params.get('on_sale') === 'true';
 
@@ -48,7 +70,7 @@ export default function Layout() {
           <span>Loja de demonstração: produtos e pagamentos fictícios</span>
         </div>
       </div>
-      <header className="topbar">
+      <header className={`topbar ${condensed ? 'is-condensed' : ''}`}>
         <div className="wrap topbar__inner">
           <Link to="/" className="logo" aria-label="GamerZone Store, página inicial">
             <span className="logo__mark" aria-hidden="true">GZ</span>
@@ -105,7 +127,12 @@ export default function Layout() {
               <Icon name="heart" />
               {favs.length > 0 && <span className="hdricon__count">{favs.length}</span>}
             </Link>
-            <Link to="/carrinho" className="hdricon hdricon--cart" aria-label={`Carrinho com ${cart.item_count} itens`}>
+            <Link
+              to="/carrinho"
+              className={`hdricon hdricon--cart ${bump ? 'is-bump' : ''}`}
+              onAnimationEnd={() => setBump(false)}
+              aria-label={`Carrinho com ${cart.item_count} itens`}
+            >
               <Icon name="cart" />
               {cart.item_count > 0 && <span className="hdricon__count">{cart.item_count}</span>}
             </Link>
@@ -135,7 +162,10 @@ export default function Layout() {
       </header>
 
       <main id="conteudo" className="main">
-        <Outlet />
+        {/* key: a cada página nova, o conteúdo entra com um fade curto */}
+        <div className="page" key={location.pathname}>
+          <Outlet />
+        </div>
       </main>
 
       <footer className="footer">

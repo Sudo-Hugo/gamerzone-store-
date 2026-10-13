@@ -5,29 +5,30 @@ import HeroCarousel from '../components/HeroCarousel';
 import Benefits from '../components/Benefits';
 import ProductRail from '../components/ProductRail';
 import ProductCard from '../components/ProductCard';
-import { ErrorBox, Loading } from '../components/Status';
+import { ErrorBox, SkeletonGrid } from '../components/Status';
 
-// Imagem que representa cada categoria na vitrine
-const CATEGORY_ART = {
-  perifericos: '/products/teclado-mecanico-rgb-nebula-k1.svg',
-  hardware: '/products/placa-de-video-titanforge-8gb.svg',
-  acessorios: '/products/cadeira-gamer-ergox.svg',
-  jogos: '/products/cronicas-de-arkhos-pc.svg',
-  colecionaveis: '/products/estatua-guardiao-do-vazio-30cm.svg',
-};
+// Ilustração de cada departamento (public/categories/<slug>.svg)
+const categoryArt = (slug) => `/categories/${slug}.svg`;
 
 // Página inicial: vitrine montada com dados reais da API.
 export default function Home() {
   const featured = useFetch(() => productsApi.list({ featured: true, limit: 6 }), []);
   const offers = useFetch(() => productsApi.list({ on_sale: true, sort: 'discount', limit: 10 }), []);
   const best = useFetch(() => productsApi.bestSellers(10), []);
-  const latest = useFetch(() => productsApi.list({ sort: 'newest', limit: 8 }), []);
+  const latest = useFetch(() => productsApi.list({ sort: 'newest', limit: 24 }), []);
   const categories = useFetch(() => categoriesApi.list(), []);
+
+  // "Lançamentos" não repete o que já apareceu no banner, nas ofertas e nos mais vendidos
+  const shown = new Set(
+    [featured.data, offers.data, best.data].flatMap((d) => (d ? d.products.map((p) => p.id) : []))
+  );
+  const othersReady = [featured, offers, best].every((x) => !x.loading);
+  const fresh = othersReady ? latest.data?.products.filter((p) => !shown.has(p.id)).slice(0, 8) : null;
 
   return (
     <>
       <div className="wrap">
-        {featured.loading && <div className="hero hero--skeleton"><Loading label="Carregando destaques..." /></div>}
+        {featured.loading && <div className="hero hero--skeleton sk" role="status" aria-label="Carregando destaques" />}
         {featured.error && <ErrorBox message={featured.error.message} onRetry={featured.retry} />}
         {featured.data && <HeroCarousel products={featured.data.products} />}
         <Benefits />
@@ -42,7 +43,9 @@ export default function Home() {
         <div className="cats">
           {categories.data?.categories.map((c) => (
             <Link key={c.id} to={`/loja?category=${c.slug}`} className="cat">
-              <img src={CATEGORY_ART[c.slug] || CATEGORY_ART.perifericos} alt="" loading="lazy" />
+              <span className="cat__art">
+                <img src={categoryArt(c.slug)} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+              </span>
               <span className="cat__text">
                 <strong>{c.name}</strong>
                 <small>{c.product_count} produtos</small>
@@ -101,11 +104,11 @@ export default function Home() {
             Ver catálogo completo
           </Link>
         </header>
-        {latest.loading && <Loading />}
+        {(latest.loading || !othersReady) && <SkeletonGrid count={4} />}
         {latest.error && <ErrorBox message={latest.error.message} onRetry={latest.retry} />}
-        {latest.data && (
+        {fresh && (
           <div className="grid">
-            {latest.data.products.map((p) => (
+            {fresh.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

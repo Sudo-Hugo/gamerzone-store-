@@ -37,7 +37,15 @@ export default function Register() {
   const err = (f) => fieldError(error, f) && <small className="field__err">{fieldError(error, f)}</small>;
 
   return (
-    <section className="auth">
+    <section className="authwrap">
+      <div className="authwrap__art" aria-hidden="true">
+        <img src="/categories/hardware.svg" alt="" />
+        <div>
+          <strong>Crie sua conta em segundos</strong>
+          <p>Monte o carrinho, acompanhe cada pedido e cancele enquanto ele não foi separado.</p>
+        </div>
+      </div>
+      <div className="auth">
       <h1>Criar conta</h1>
       <form onSubmit={handleSubmit} className="stack" noValidate>
         <label className="field">
@@ -72,6 +80,7 @@ export default function Register() {
       <p className="muted">
         Já tem conta? <Link to="/login" state={location.state}>Entrar</Link>
       </p>
+      </div>
     </section>
   );
 }

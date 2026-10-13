@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
+import Steps from '../components/Steps';
 import ProductImage from '../components/ProductImage';
 import Price from '../components/Price';
 import QuantityStepper from '../components/QuantityStepper';
@@ -18,11 +20,13 @@ export default function Cart() {
   const notify = useToast();
   const navigate = useNavigate();
   const [busyId, setBusyId] = useState(null);
+  const [leaving, setLeaving] = useState(null);
+  const confirm = useConfirm();
   const suggestions = useFetch(() => productsApi.bestSellers(10), []);
 
   if (!user)
     return (
-      <Empty title="Entre na sua conta para ver o carrinho.">
+      <Empty title="Entre na sua conta para ver o carrinho." art="cart">
         <Link className="btn btn--primary" to="/login" state={{ from: '/carrinho' }}>
           Entrar
         </Link>
@@ -32,7 +36,7 @@ export default function Cart() {
   if (error) return <ErrorBox message={error} onRetry={refresh} />;
   if (cart.items.length === 0)
     return (
-      <Empty title="Seu carrinho está vazio.">
+      <Empty title="Seu carrinho está vazio." art="cart">
         <Link className="btn btn--primary" to="/">
           Ver produtos
         </Link>
@@ -51,13 +55,32 @@ export default function Cart() {
     }
   };
 
+  // Remove com uma saída suave do item antes de atualizar a lista
+  const removeItem = async (it) => {
+    setLeaving(it.product_id);
+    await new Promise((r) => setTimeout(r, 180));
+    await act(it.product_id, () => remove(it.product_id), `${it.name} saiu do carrinho.`);
+    setLeaving(null);
+  };
+
+  const clearAll = async () => {
+    const ok = await confirm({
+      title: 'Esvaziar o carrinho?',
+      message: `Os ${cart.item_count} itens serão removidos. Os produtos continuam disponíveis na loja.`,
+      confirmLabel: 'Esvaziar',
+      danger: true,
+    });
+    if (ok) act('all', clear, 'Carrinho esvaziado.');
+  };
+
   return (
     <section>
+      <Steps current={1} />
       <h1>Carrinho</h1>
       <div className="cart">
         <ul className="cart__list">
           {cart.items.map((it) => (
-            <li key={it.product_id} className="cartitem">
+            <li key={it.product_id} className={`cartitem ${leaving === it.product_id ? 'is-leaving' : ''}`}>
               <Link to={`/produto/${it.product_id}`} className="cartitem__img">
                 <ProductImage product={it} size="sm" />
               </Link>
@@ -78,7 +101,7 @@ export default function Cart() {
               <button
                 className="btn btn--ghost btn--sm"
                 disabled={busyId === it.product_id}
-                onClick={() => act(it.product_id, () => remove(it.product_id), `${it.name} saiu do carrinho.`)}
+                onClick={() => removeItem(it)}
               >
                 Remover
               </button>
@@ -100,7 +123,7 @@ export default function Cart() {
           </button>
           <button
             className="btn btn--ghost btn--sm btn--block"
-            onClick={() => act('all', clear, 'Carrinho esvaziado.')}
+            onClick={clearAll}
             disabled={busyId === 'all'}
           >
             Esvaziar carrinho

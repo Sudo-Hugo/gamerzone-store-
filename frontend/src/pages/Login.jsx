@@ -29,7 +29,15 @@ export default function Login() {
   };
 
   return (
-    <section className="auth">
+    <section className="authwrap">
+      <div className="authwrap__art" aria-hidden="true">
+        <img src="/categories/perifericos.svg" alt="" />
+        <div>
+          <strong>De volta ao jogo</strong>
+          <p>Seu carrinho, seus favoritos e seus pedidos ficam salvos na sua conta.</p>
+        </div>
+      </div>
+      <div className="auth">
       <h1>Entrar</h1>
       <p className="muted">Use sua conta para montar o carrinho e acompanhar pedidos.</p>
       <form onSubmit={handleSubmit} className="stack">
@@ -56,6 +64,7 @@ export default function Login() {
         <span>Cliente: cliente@gamerzone.com / cliente123</span>
         <span>Admin: admin@gamerzone.com / admin123</span>
       </aside>
+      </div>
     </section>
   );
 }

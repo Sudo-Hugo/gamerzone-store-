@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -6,15 +6,19 @@ import { useToast } from '../context/ToastContext';
 import Icon from './Icon';
 
 // Botão de adicionar ao carrinho, usado no card e na página do produto.
-export default function AddToCartButton({ product, quantity = 1, compact = false, block = false }) {
+// variant "card" = botão discreto (contorno); "main" = botão amarelo cheio.
+export default function AddToCartButton({ product, quantity = 1, variant = 'main', block = false }) {
   const { user } = useAuth();
   const { add } = useCart();
   const notify = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const [busy, setBusy] = useState(false);
+  const [state, setState] = useState('idle'); // idle | busy | done
+  const timer = useRef(null);
 
+  useEffect(() => () => clearTimeout(timer.current), []);
   const soldOut = product.stock === 0;
+  const card = variant === 'card';
 
   const handleClick = async () => {
     if (!user) {
@@ -22,25 +26,38 @@ export default function AddToCartButton({ product, quantity = 1, compact = false
       navigate('/login', { state: { from: location.pathname + location.search } });
       return;
     }
-    setBusy(true);
+    setState('busy');
     try {
       await add(product.id, quantity);
-      notify(`${product.name} foi para o carrinho.`);
+      setState('done'); // confirmação visual no próprio botão por um instante
+      timer.current = setTimeout(() => setState('idle'), 1400);
+      if (!card) notify(`${product.name} foi para o carrinho.`);
     } catch (err) {
+      setState('idle');
       notify(err.message, 'bad');
-    } finally {
-      setBusy(false);
     }
   };
 
+  const label = soldOut
+    ? 'Esgotado'
+    : state === 'busy'
+      ? 'Adicionando...'
+      : state === 'done'
+        ? 'Adicionado'
+        : card
+          ? 'Adicionar'
+          : 'Adicionar ao carrinho';
+
   return (
     <button
-      className={`btn btn--primary ${compact ? 'btn--sm' : 'btn--lg'} ${block ? 'btn--block' : ''}`}
+      className={`btn addbtn ${card ? 'btn--card btn--sm' : 'btn--primary btn--lg'} ${block ? 'btn--block' : ''} ${state === 'done' ? 'is-done' : ''}`}
       onClick={handleClick}
-      disabled={soldOut || busy}
+      disabled={soldOut || state === 'busy'}
+      aria-live="polite"
     >
-      {!soldOut && !busy && <Icon name="cart" size={18} />}
-      {soldOut ? 'Esgotado' : busy ? 'Adicionando...' : compact ? 'Adicionar' : 'Adicionar ao carrinho'}
+      {!soldOut && state !== 'busy' && <Icon name={state === 'done' ? 'check' : 'cart'} size={18} />}
+      {state === 'busy' && <span className="spinner spinner--sm" aria-hidden="true" />}
+      {label}
     </button>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersApi } from '../../api/services';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import StatusBadge from '../../components/StatusBadge';
 import { Empty, ErrorBox, Loading } from '../../components/Status';
 import { formatDate, formatPrice, NEXT_STATUS, ORDER_STATUS, STATUS_ACTION } from '../../utils/format';
@@ -11,6 +12,7 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
+  const confirm = useConfirm();
 
   const load = () => {
     setError(null);
@@ -19,7 +21,16 @@ export default function AdminOrders() {
   useEffect(load, []);
 
   const change = async (order, status) => {
-    if (status === 'cancelled' && !window.confirm(`Cancelar o pedido #${order.id}? Os itens voltam para o estoque.`)) return;
+    if (status === 'cancelled') {
+      const ok = await confirm({
+        title: `Cancelar o pedido #${order.id}?`,
+        message: `Pedido de ${order.user_name}. Os itens voltam para o estoque.`,
+        confirmLabel: 'Cancelar pedido',
+        cancelLabel: 'Voltar',
+        danger: true,
+      });
+      if (!ok) return;
+    }
     setBusy(order.id);
     try {
       await ordersApi.updateStatus(order.id, status);

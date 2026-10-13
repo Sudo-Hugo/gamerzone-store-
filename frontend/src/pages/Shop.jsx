@@ -5,7 +5,7 @@ import useFetch from '../utils/useFetch';
 import ProductCard from '../components/ProductCard';
 import Pagination from '../components/Pagination';
 import Icon from '../components/Icon';
-import { Empty, ErrorBox, Loading } from '../components/Status';
+import { Empty, ErrorBox, SkeletonGrid } from '../components/Status';
 
 // Catálogo completo: filtros ficam na URL (?category=&brand=&on_sale=...),
 // então dá para compartilhar o link e o botão "voltar" funciona.
@@ -123,10 +123,10 @@ export default function Shop() {
         </aside>
 
         <section className="shop__results" aria-live="polite">
-          {list.loading && <Loading label="Carregando produtos..." />}
+          {list.loading && <SkeletonGrid count={8} />}
           {list.error && <ErrorBox message={list.error.message} onRetry={list.retry} />}
           {list.data?.products.length === 0 && (
-            <Empty title="Nenhum produto encontrado com esses filtros.">
+            <Empty title="Nenhum produto encontrado com esses filtros." art="search">
               <p className="muted">Tente outra palavra, outra marca ou remova o filtro de preço.</p>
               <button className="btn btn--primary" onClick={() => setParams({})}>
                 Limpar filtros
@@ -135,7 +135,7 @@ export default function Shop() {
           )}
           {list.data?.products.length > 0 && (
             <>
-              <div className="grid grid--shop">
+              <div className="grid grid--shop is-fadein" key={queryKey}>
                 {list.data.products.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}

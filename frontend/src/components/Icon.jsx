@@ -12,6 +12,8 @@ const PATHS = {
   chevronRight: <path d="M9 5l7 7-7 7" />,
   filter: <path d="M4 5h16l-6 7.5V19l-4-2v-4.5z" />,
   bolt: <path d="M13 2L4 14h7l-1 8 9-12h-7z" />,
+  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  close: <path d="M6 6l12 12M18 6L6 18" />,
 };
 
 export default function Icon({ name, size = 22, filled = false, className = '' }) {

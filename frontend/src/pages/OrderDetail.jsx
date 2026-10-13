@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ordersApi } from '../api/services';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
+import OrderTimeline from '../components/OrderTimeline';
+import Steps from '../components/Steps';
 import Price from '../components/Price';
 import ProductImage from '../components/ProductImage';
 import StatusBadge from '../components/StatusBadge';
@@ -15,6 +18,7 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const confirm = useConfirm();
 
   useEffect(() => {
     ordersApi
@@ -24,7 +28,14 @@ export default function OrderDetail() {
   }, [id]);
 
   const cancel = async () => {
-    if (!window.confirm(`Cancelar o pedido #${order.id}? Os itens voltam para o estoque.`)) return;
+    const ok = await confirm({
+      title: `Cancelar o pedido #${order.id}?`,
+      message: 'Os itens voltam para o estoque e o pedido não poderá ser reativado.',
+      confirmLabel: 'Cancelar pedido',
+      cancelLabel: 'Manter pedido',
+      danger: true,
+    });
+    if (!ok) return;
     setCancelling(true);
     try {
       const { order: updated } = await ordersApi.cancel(order.id);
@@ -52,8 +63,9 @@ export default function OrderDetail() {
 
   return (
     <section>
+      {location.state?.justPlaced && <Steps current={4} />}
       {location.state?.justPlaced && (
-        <div className="banner" role="status">
+        <div className="banner banner--celebrate" role="status">
           Pedido recebido! Guarde o número <strong>#{order.id}</strong> para acompanhar.
         </div>
       )}
@@ -62,6 +74,7 @@ export default function OrderDetail() {
         <StatusBadge status={order.status} />
       </div>
       <p className="muted">Feito em {formatDate(order.created_at)}</p>
+      <OrderTimeline status={order.status} />
 
       <div className="cart">
         <table className="table">

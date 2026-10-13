@@ -11,11 +11,13 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
+        <ConfirmProvider>
         <AuthProvider>
           <CartProvider>
             <FavoritesProvider>
@@ -23,6 +25,7 @@ createRoot(document.getElementById('root')).render(
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </BrowserRouter>
   </StrictMode>

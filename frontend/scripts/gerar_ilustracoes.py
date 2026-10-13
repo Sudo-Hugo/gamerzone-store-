@@ -599,8 +599,71 @@ PRODUCTS = {
     'neon-drift-arena-pc': lambda: game('#ff3bd4', 'neon', 'NEON DRIFT\nARENA'),
 }
 
+# ─── departamentos: composição de vários produtos numa cena ───────────────
+COMMON_IDS = {'bg', 'halo', 'fade', 'floorMask', 'blur8', 'blur18', 'blur3'}
+
+
+def parts(svg, prefix):
+    """Separa as definições e o desenho de uma ilustração, renomeando os ids
+    próprios do produto para não colidirem com os de outro produto na cena."""
+    import re
+    defs = svg.split('<defs>', 1)[1].split('</defs>', 1)[0]
+    body = svg.split('filter="url(#blur18)"/>', 1)[1].rsplit('</svg>', 1)[0]  # depois da sombra do chão
+    own = set(re.findall(r'id="([^"]+)"', defs + body)) - COMMON_IDS
+    for i in own:
+        defs = defs.replace(f'id="{i}"', f'id="{prefix}{i}"')
+        defs = defs.replace(f'url(#{i})', f'url(#{prefix}{i})')
+        body = body.replace(f'id="{i}"', f'id="{prefix}{i}"')
+        body = body.replace(f'url(#{i})', f'url(#{prefix}{i})')
+    for common in COMMON_IDS:  # filtros e gradientes comuns já existem no palco
+        defs = re.sub(rf'<(linearGradient|radialGradient|filter|mask) id="{common}".*?</\1>', '', defs, flags=re.S)
+    return defs, body
+
+
+def scene(accent, items):
+    """items: [(svg_do_produto, transform)] — do fundo para a frente."""
+    all_defs, all_body = '', ''
+    for n, (svg, transform) in enumerate(items):
+        d, b = parts(svg, f'p{n}')
+        all_defs += d
+        all_body += f'<g transform="{transform}">{b}</g>'
+    return frame(accent, all_body, all_defs, floor_y=500)
+
+
+CATEGORIES = {
+    'perifericos': lambda: scene('#ffd23f', [
+        (headset('#a77bff'), 'translate(-30 -45) scale(.6)'),
+        (keyboard('#ffd23f'), 'translate(90 90) scale(.76)'),
+        (mouse('#ff4f6d'), 'translate(470 200) scale(.5)'),
+    ]),
+    'hardware': lambda: scene('#ff8a3b', [
+        (monitor('#ff4fd8'), 'translate(230 10) scale(.6)'),
+        (gpu('#ff8a3b'), 'translate(10 160) scale(.7)'),
+        (ssd('#3ddc97'), 'translate(370 310) scale(.48)'),
+    ]),
+    'acessorios': lambda: scene('#ff4f6d', [
+        (chair('#ff4f6d'), 'translate(-40 20) scale(.85)'),
+        (stand('#ff4fd8'), 'translate(390 110) scale(.6)'),
+        (mousepad('#ff3bd4', glow=True), 'translate(260 330) scale(.55)'),
+    ]),
+    'jogos': lambda: scene('#a77bff', [
+        (game('#ff8a3b', 'speed', 'VELOCITY\nRUSH'), 'translate(-110 80) scale(.68) rotate(-10 400 300)'),
+        (game('#ff3bd4', 'neon', 'NEON DRIFT\nARENA'), 'translate(330 80) scale(.68) rotate(10 400 300)'),
+        (game('#a77bff', 'castle', 'CRÔNICAS\nDE ARKHOS'), 'translate(110 40) scale(.8)'),
+    ]),
+    'colecionaveis': lambda: scene('#a77bff', [
+        (statue('#a77bff'), 'translate(-80 0) scale(.92)'),
+        (figure('#ffd23f'), 'translate(300 120) scale(.66)'),
+    ]),
+}
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     for slug, make in PRODUCTS.items():
         write(slug, make())
-    print(f'{len(PRODUCTS)} ilustrações geradas em {os.path.normpath(OUT)}')
+    cat_dir = os.path.join(OUT, '..', 'categories')
+    os.makedirs(cat_dir, exist_ok=True)
+    for slug, make in CATEGORIES.items():
+        with open(os.path.join(cat_dir, f'{slug}.svg'), 'w', encoding='utf-8') as f:
+            f.write(make())
+    print(f'{len(PRODUCTS)} ilustrações de produtos e {len(CATEGORIES)} de departamentos geradas.')

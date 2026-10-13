@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { categoriesApi, productsApi } from '../../api/services';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import FieldErrors, { fieldError } from '../../components/FieldErrors';
 import { ErrorBox, Loading } from '../../components/Status';
 import { formatPrice } from '../../utils/format';
@@ -93,7 +94,17 @@ export default function AdminProducts() {
     }
   };
 
+  const confirm = useConfirm();
   const toggleActive = async (p) => {
+    if (p.active) {
+      const ok = await confirm({
+        title: `Desativar "${p.name}"?`,
+        message: 'Ele sai da loja e dos carrinhos, mas continua nos pedidos antigos. Dá para reativar depois.',
+        confirmLabel: 'Desativar',
+        danger: true,
+      });
+      if (!ok) return;
+    }
     try {
       if (p.active) await productsApi.remove(p.id);
       else await productsApi.update(p.id, { active: true });
@@ -122,7 +133,7 @@ export default function AdminProducts() {
       </div>
 
       {editing !== null && (
-        <form className="panel" onSubmit={save}>
+        <form className="panel reveal" onSubmit={save}>
           <h2 className="h3">{editing === 'new' ? 'Novo produto' : 'Editar produto'}</h2>
           <div className="grid-form">
             <label className="field field--wide">
