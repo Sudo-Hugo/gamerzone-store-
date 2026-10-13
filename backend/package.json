@@ -1,0 +1,44 @@
+{
+  "name": "gamerzone-backend",
+  "version": "2.0.0",
+  "description": "API REST da GamerZone Store - Loja Virtual Gamer",
+  "main": "src/server.js",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed.js",
+    "db:setup": "node src/db/migrate.js && node src/db/seed.js",
+    "db:reset": "node src/db/migrate.js --reset && node src/db/seed.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "globalSetup": "./tests/globalSetup.js",
+    "testTimeout": 30000,
+    "setupFiles": [
+      "./tests/setupEnv.js"
+    ]
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.1",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.1"
+  }
+}

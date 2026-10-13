@@ -1,204 +1,180 @@
-# 🎮 GamerZone Store — Backend API
+# GamerZone Store
 
-Backend REST API da loja virtual gamer, desenvolvida com **Node.js + Express + PostgreSQL**.
+Loja virtual de produtos gamer: catálogo com busca e filtros, carrinho, checkout com endereço de entrega, acompanhamento de pedidos e painel administrativo. Projeto acadêmico de Engenharia de Software.
 
----
+| Camada | Tecnologia |
+|---|---|
+| Front-end | React 19 + Vite + React Router (`frontend/`) |
+| Back-end | Node.js + Express 4, API REST em JSON (`backend/`) |
+| Banco de dados | PostgreSQL 14+ com migrações em SQL puro |
+| Autenticação | JWT (Bearer) + senhas com hash bcrypt |
+| Testes | Jest + Supertest contra um banco PostgreSQL real |
 
-## 📁 Estrutura do Projeto
+Documentação complementar:
 
-```
-gamerzone-backend/
-├── src/
-│   ├── app.js                   # Entrada da aplicação
-│   ├── routes/
-│   │   ├── auth.js              # Rotas de autenticação
-│   │   ├── products.js          # Rotas de produtos
-│   │   └── orders.js            # Rotas de pedidos
-│   ├── controllers/
-│   │   ├── authController.js    # Lógica de login/registro
-│   │   ├── productController.js # CRUD de produtos
-│   │   └── orderController.js   # Criação e listagem de pedidos
-│   ├── middleware/
-│   │   ├── auth.js              # Verificação de token JWT
-│   │   └── validation.js        # Validação de dados com express-validator
-│   └── db/
-│       ├── connection.js        # Conexão com o PostgreSQL
-│       └── setup.js             # Script de criação de tabelas e dados iniciais
-├── .env.example                 # Modelo de variáveis de ambiente
-├── .gitignore
-└── package.json
-```
+- [docs/API.md](docs/API.md): todos os endpoints com exemplos de requisição e resposta
+- [docs/APRESENTACAO.md](docs/APRESENTACAO.md): arquitetura, diagramas, fluxos, roteiro de demonstração e perguntas do professor
+- [docs/RELATORIO-TESTES.md](docs/RELATORIO-TESTES.md): resultado da última execução dos testes
 
 ---
 
-## ⚙️ Como Rodar o Projeto
+## Estrutura de pastas
+
+```
+gamerzone/
+├── backend/
+│   ├── src/
+│   │   ├── server.js              # sobe o servidor HTTP
+│   │   ├── app.js                 # monta o Express (usado também pelos testes)
+│   │   ├── config.js              # lê e valida as variáveis de ambiente
+│   │   ├── controllers/           # regras de negócio por recurso
+│   │   │   ├── authController.js
+│   │   │   ├── productController.js
+│   │   │   ├── categoryController.js
+│   │   │   ├── cartController.js
+│   │   │   ├── addressController.js
+│   │   │   └── orderController.js
+│   │   ├── routes/                # URLs + middlewares de cada recurso
+│   │   ├── middleware/
+│   │   │   ├── auth.js            # JWT, adminOnly
+│   │   │   ├── validation.js      # regras do express-validator
+│   │   │   └── errorHandler.js    # formato padrão de erros
+│   │   ├── db/
+│   │   │   ├── pool.js            # conexão e transações
+│   │   │   ├── migrate.js         # runner de migrações
+│   │   │   ├── seed.js            # dados de demonstração
+│   │   │   └── migrations/001_schema_inicial.sql
+│   │   └── utils/
+│   ├── tests/                     # 6 arquivos, 66 testes
+│   ├── .env.example
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── api/client.js          # único ponto de contato com a API
+│   │   ├── api/services.js        # funções por recurso (produtos, carrinho...)
+│   │   ├── context/               # sessão (Auth), carrinho e notificações
+│   │   ├── components/            # Layout, cards, estados de tela, formulários
+│   │   ├── pages/                 # uma tela por arquivo (+ admin/)
+│   │   ├── utils/format.js        # moeda, datas, status
+│   │   └── styles.css
+│   ├── .env.example
+│   └── package.json
+└── docs/
+```
+
+---
+
+## Como rodar
 
 ### 1. Pré-requisitos
-- [Node.js](https://nodejs.org) v18+
-- [PostgreSQL](https://www.postgresql.org/) instalado e rodando
 
-### 2. Clonar e instalar dependências
-```bash
-git clone https://github.com/seu-usuario/gamerzone-backend.git
-cd gamerzone-backend
-npm install
-```
+- Node.js 18 ou mais recente
+- PostgreSQL 14 ou mais recente, rodando
 
-### 3. Configurar variáveis de ambiente
-```bash
-cp .env.example .env
-# Edite o .env com as suas credenciais do PostgreSQL
-```
+### 2. Criar os bancos
 
-### 4. Criar o banco de dados (no PostgreSQL)
+No `psql` (ou pgAdmin):
+
 ```sql
-CREATE DATABASE gamerzone_db;
+CREATE DATABASE gamerzone_db;    -- usado pela aplicação
+CREATE DATABASE gamerzone_test;  -- usado só pelos testes (é apagado a cada execução)
 ```
 
-### 5. Criar as tabelas e dados iniciais
+### 3. Back-end
+
 ```bash
-npm run db:setup
+cd backend
+npm install
+cp .env.example .env
 ```
 
-### 6. Iniciar o servidor
+Edite `backend/.env`:
+
+- `DB_PASSWORD`: a senha do seu PostgreSQL
+- `JWT_SECRET`: gere um valor com `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+
+A API não sobe sem um `JWT_SECRET` de pelo menos 32 caracteres.
+
 ```bash
-# Desenvolvimento (com hot-reload)
-npm run dev
-
-# Produção
-npm start
+npm run db:setup   # cria as tabelas e carrega os dados de demonstração
+npm run dev        # API em http://localhost:3000
 ```
 
-Acesse: `http://localhost:3000`
+Teste rápido: abra `http://localhost:3000/api/health`.
+
+### 4. Front-end (em outro terminal)
+
+```bash
+cd frontend
+npm install
+cp .env.example .env   # VITE_API_URL=http://localhost:3000/api
+npm run dev            # site em http://localhost:5173
+```
+
+### Como o front se conecta ao back
+
+- O front lê a URL da API de `VITE_API_URL` (`frontend/.env`). Todas as chamadas passam por `frontend/src/api/client.js`.
+- O back só aceita requisições vindas das origens listadas em `CORS_ORIGIN` (`backend/.env`, padrão `http://localhost:5173`). Se mudar a porta do front, atualize as duas variáveis.
 
 ---
 
-## 🔌 Endpoints da API
+## Contas de demonstração (fictícias)
 
-### Status
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/` | Verifica se a API está online |
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Administrador | admin@gamerzone.com | admin123 |
+| Cliente (já tem um endereço) | cliente@gamerzone.com | cliente123 |
 
----
-
-### 🔑 Autenticação — `/api/auth`
-| Método | Rota | Acesso | Descrição |
-|--------|------|--------|-----------|
-| POST | `/api/auth/register` | Público | Cadastra novo usuário |
-| POST | `/api/auth/login` | Público | Faz login e retorna JWT |
-| GET | `/api/auth/me` | Logado | Retorna dados do usuário logado |
-
-**Exemplo — Registro:**
-```json
-POST /api/auth/register
-{
-  "name": "Hugo Silva",
-  "email": "hugo@email.com",
-  "password": "minhasenha123"
-}
-```
-
-**Exemplo — Login:**
-```json
-POST /api/auth/login
-{
-  "email": "hugo@email.com",
-  "password": "minhasenha123"
-}
-```
-> Resposta inclui um `token` JWT. Use nas rotas protegidas:
-> `Authorization: Bearer <token>`
+O seed também cria 5 categorias e 14 produtos fictícios. Para voltar ao estado inicial: `npm run db:reset` (apaga **tudo** do banco de desenvolvimento).
 
 ---
 
-### 🎮 Produtos — `/api/products`
-| Método | Rota | Acesso | Descrição |
-|--------|------|--------|-----------|
-| GET | `/api/products` | Público | Lista todos os produtos |
-| GET | `/api/products/:id` | Público | Detalhes de um produto |
-| GET | `/api/products/categories` | Público | Lista categorias |
-| POST | `/api/products` | Admin | Cria produto |
-| PUT | `/api/products/:id` | Admin | Atualiza produto |
-| DELETE | `/api/products/:id` | Admin | Remove produto |
+## Scripts do back-end
 
-**Filtros disponíveis (GET /api/products):**
-```
-?category=perifericos
-?search=teclado
-?min_price=100&max_price=500
-?page=1&limit=12
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | API com recarga automática (nodemon) |
+| `npm start` | API em modo normal |
+| `npm run migrate` | Aplica migrações pendentes |
+| `npm run seed` | Insere os dados de demonstração (pode repetir, não duplica) |
+| `npm run db:setup` | `migrate` + `seed` |
+| `npm run db:reset` | Apaga todas as tabelas, recria e popula |
+| `npm test` | Roda os 66 testes no banco `gamerzone_test` |
+
+## Executando os testes
+
+```bash
+cd backend
+npm test
 ```
 
-**Exemplo — Criar produto (admin):**
-```json
-POST /api/products
-Authorization: Bearer <token_admin>
-
-{
-  "name": "Mousepad XL Gamer",
-  "description": "Mousepad extra grande com superfície lisa.",
-  "price": 89.90,
-  "stock": 50,
-  "category_id": 3
-}
-```
+Os testes usam o banco definido em `TEST_DB_NAME` (padrão `gamerzone_test`), nunca o de desenvolvimento. No início da execução o schema do banco de teste é recriado do zero, e antes de cada teste os dados são zerados e recarregados. O teste de persistência sobe o servidor de verdade na porta 3999, encerra e sobe de novo.
 
 ---
 
-### 📦 Pedidos — `/api/orders`
-| Método | Rota | Acesso | Descrição |
-|--------|------|--------|-----------|
-| POST | `/api/orders` | Logado | Cria pedido |
-| GET | `/api/orders` | Logado | Lista pedidos do usuário (admin vê todos) |
-| GET | `/api/orders/:id` | Logado | Detalhes de um pedido |
-| PATCH | `/api/orders/:id/status` | Admin | Atualiza status do pedido |
+## Dependências
 
-**Exemplo — Criar pedido:**
-```json
-POST /api/orders
-Authorization: Bearer <token>
+**Back-end:** `express`, `pg`, `bcryptjs`, `jsonwebtoken`, `express-validator`, `cors`, `helmet`, `express-rate-limit`, `dotenv`. Desenvolvimento: `jest`, `supertest`, `nodemon`, `cross-env`.
 
-{
-  "items": [
-    { "product_id": 1, "quantity": 2 },
-    { "product_id": 3, "quantity": 1 }
-  ]
-}
-```
-
-**Status possíveis de pedido:**
-`pending` → `processing` → `shipped` → `delivered` / `cancelled`
+**Front-end:** `react`, `react-dom`, `react-router-dom`, `@fontsource/chakra-petch`, `@fontsource/work-sans` (fontes embutidas, funcionam offline). Desenvolvimento: `vite`, `@vitejs/plugin-react`.
 
 ---
 
-## 👤 Admin padrão (criado pelo setup)
+## Limitações e fora do escopo
 
-| Campo | Valor |
-|-------|-------|
-| Email | admin@gamerzone.com |
-| Senha | admin123 |
+- **Pagamento simulado:** o pedido é criado como "Aguardando pagamento" e não há integração com gateway nem coleta de dados de cartão.
+- **Frete:** grátis e não calculado.
+- **Imagens:** o admin pode informar uma URL de imagem; não há upload de arquivos. Sem URL, o front mostra uma ilustração por categoria.
+- **Conta do usuário:** não há recuperação de senha por e-mail, edição de perfil nem verificação de e-mail.
+- **Sessão:** o token JWT fica no `localStorage` (simples para o escopo). Ele não pode ser revogado individualmente antes de expirar (padrão: 1 dia), mas o papel e a existência do usuário são conferidos no banco a cada requisição.
+- **Rate limit** guardado em memória: reinicia junto com o servidor e não é compartilhado entre várias instâncias.
+- **Categorias:** a API tem CRUD completo de categorias, mas o painel admin do front ainda só gerencia produtos e pedidos.
+- **Sem testes automatizados de front-end:** o front foi validado manualmente e por um roteiro com navegador headless durante o desenvolvimento.
 
-> ⚠️ Troque a senha em produção!
+## Equipe
 
----
-
-## 🗄️ Banco de Dados — Tabelas
-
-| Tabela | Descrição |
-|--------|-----------|
-| `users` | Usuários cadastrados |
-| `categories` | Categorias de produtos |
-| `products` | Catálogo de produtos |
-| `orders` | Pedidos realizados |
-| `order_items` | Itens de cada pedido |
-
----
-
-## 👥 Equipe
-
-| Integrante | Função |
-|------------|--------|
-| Luiz (Líder) | Backend — API, rotas e regras de negócio |
-| Luis | Frontend — React e integração com a API |
+| Integrante | Papel |
+|---|---|
+| Luiz (líder) | Back-end: API, rotas e regras de negócio |
+| Luis | Front-end: React e integração com a API |
 | Hugo | Banco de dados, testes e documentação |
